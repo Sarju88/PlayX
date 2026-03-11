@@ -1,189 +1,272 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PlayX Gaming Hub</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PlayX Gaming Hub</title>
 
-<script>
-const params = new URLSearchParams(window.location.search);
-const pass = params.get("password");
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const gatePassword = params.get("password");
 
-if(pass !== "iwantgames"){
-    window.location.href = "ban.html";
-}
-</script>
+    if (gatePassword !== "iwantgames") {
+      window.location.replace("ban.html");
+    }
+  </script>
 
-<style>
+  <style>
+    *{
+      box-sizing:border-box;
+    }
 
-body{
-margin:0;
-font-family:monospace;
-background:#020402;
-color:#39ff14;
-overflow:hidden;
-}
+    body{
+      margin:0;
+      font-family:monospace;
+      background:#020402;
+      color:#39ff14;
+      overflow:hidden;
+    }
 
-canvas{
-position:fixed;
-top:0;
-left:0;
-z-index:0;
-}
+    canvas{
+      position:fixed;
+      inset:0;
+      z-index:0;
+    }
 
-.center{
-position:absolute;
-top:50%;
-left:50%;
-transform:translate(-50%,-50%);
-z-index:2;
-}
+    .center{
+      position:absolute;
+      top:50%;
+      left:50%;
+      transform:translate(-50%,-50%);
+      z-index:2;
+      width:min(92vw, 380px);
+    }
 
-.card{
-background:#0a120a;
-border:1px solid #39ff14;
-box-shadow:0 0 25px #39ff14;
-padding:40px;
-width:360px;
-text-align:center;
-}
+    .card{
+      background:#0a120a;
+      border:1px solid #39ff14;
+      box-shadow:0 0 25px rgba(57,255,20,.45);
+      padding:36px;
+      text-align:center;
+    }
 
-h1{
-margin-bottom:20px;
-}
+    h1{
+      margin:0 0 18px 0;
+      font-size:30px;
+      letter-spacing:.5px;
+      text-shadow:0 0 10px rgba(57,255,20,.4);
+    }
 
-input{
-width:100%;
-padding:12px;
-margin:10px 0;
-background:black;
-border:1px solid #39ff14;
-color:#39ff14;
-}
+    #terminal{
+      min-height:24px;
+      margin-bottom:18px;
+      color:#9dff8b;
+    }
 
-button{
-width:100%;
-padding:12px;
-margin-top:10px;
-background:#39ff14;
-border:none;
-color:black;
-font-weight:bold;
-cursor:pointer;
-}
+    input{
+      width:100%;
+      padding:12px 14px;
+      margin:10px 0;
+      background:#000;
+      border:1px solid #39ff14;
+      color:#39ff14;
+      outline:none;
+      font-family:monospace;
+      font-size:15px;
+    }
 
-#status{
-margin-top:12px;
-min-height:24px;
-}
+    input:focus{
+      box-shadow:0 0 0 3px rgba(57,255,20,.12);
+    }
 
-#loading{
-display:none;
-margin-top:15px;
-}
+    button{
+      width:100%;
+      padding:12px;
+      margin-top:10px;
+      background:#39ff14;
+      border:none;
+      color:#000;
+      font-weight:bold;
+      font-family:monospace;
+      font-size:15px;
+      cursor:pointer;
+    }
 
-</style>
+    button:hover{
+      filter:brightness(1.05);
+    }
+
+    #loading{
+      display:none;
+      margin-top:14px;
+      color:#caffc0;
+    }
+
+    #status{
+      margin-top:12px;
+      min-height:24px;
+      font-weight:bold;
+    }
+
+    #granted{
+      display:none;
+      margin-top:16px;
+      text-align:left;
+      background:#000;
+      border:1px solid #39ff14;
+      padding:12px;
+      color:#baffad;
+    }
+
+    .line{
+      opacity:0;
+      animation:fadeLine .35s forwards;
+    }
+
+    @keyframes fadeLine{
+      to{ opacity:1; }
+    }
+
+    .hint{
+      margin-top:14px;
+      color:#7ecf75;
+      font-size:12px;
+    }
+  </style>
 </head>
-
 <body>
+  <canvas id="matrix"></canvas>
 
-<canvas id="matrix"></canvas>
+  <div class="center">
+    <div class="card">
+      <h1>PlayX Gaming Hub</h1>
+      <div id="terminal"></div>
 
-<div class="center">
-<div class="card">
+      <input id="code" type="password" placeholder="Enter elite password" />
+      <button onclick="auth()">ENTER</button>
 
-<h1>PlayX Gaming Hub</h1>
+      <div id="loading">Authenticating...</div>
+      <div id="status"></div>
+      <div id="granted"></div>
 
-<div id="terminal"></div>
+      <div class="hint">VIP node access portal</div>
+    </div>
+  </div>
 
-<input id="code" type="password" placeholder="Enter elite password">
+  <script>
+    const terminalText = "Initializing secure node...";
+    let terminalIndex = 0;
 
-<button onclick="auth()">ENTER</button>
+    function typeTerminal() {
+      if (terminalIndex < terminalText.length) {
+        document.getElementById("terminal").textContent += terminalText.charAt(terminalIndex);
+        terminalIndex++;
+        setTimeout(typeTerminal, 40);
+      }
+    }
+    typeTerminal();
 
-<div id="loading">Authenticating...</div>
-<div id="status"></div>
+    async function sha256(text) {
+      const encoder = new TextEncoder();
+      const data = encoder.encode(text);
+      const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      return hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
+    }
 
-</div>
-</div>
+    function showGrantedSequence() {
+      const granted = document.getElementById("granted");
+      const lines = [
+        "[ OK ] Password hash verified",
+        "[ OK ] Successful login",
+        "[ OK ] Loading PlayX modules",
+        "[ OK ] Syncing elite session",
+        "[ OK ] Welcome to PlayX Gaming Hub"
+      ];
 
-<script>
+      granted.innerHTML = "";
+      granted.style.display = "block";
 
-const txt="Initializing secure node...";
-let i=0;
+      lines.forEach((text, idx) => {
+        const div = document.createElement("div");
+        div.className = "line";
+        div.style.animationDelay = (idx * 250) + "ms";
+        div.textContent = text;
+        granted.appendChild(div);
+      });
+    }
 
-function type(){
-if(i<txt.length){
-document.getElementById("terminal").innerHTML+=txt.charAt(i);
-i++;
-setTimeout(type,40);
-}
-}
+    async function auth() {
+      const correctHash = "5a8d04f304455598d3fe1d1848664d7eb5f9455928ce581ce9b1af2e84012f53";
+      const input = document.getElementById("code").value;
+      const loading = document.getElementById("loading");
+      const status = document.getElementById("status");
+      const granted = document.getElementById("granted");
 
-type();
+      status.textContent = "";
+      granted.style.display = "none";
+      loading.style.display = "block";
 
-function auth(){
+      try {
+        const inputHash = await sha256(input);
 
-const encoded="VGgzQ2ghY2szbiFzMG5GIXIz";
-const input=document.getElementById("code").value;
+        setTimeout(() => {
+          loading.style.display = "none";
 
-document.getElementById("status").innerText="";
-document.getElementById("loading").style.display="block";
+          if (inputHash === correctHash) {
+            status.textContent = "Successful login";
+            showGrantedSequence();
+          } else {
+            status.textContent = "Access denied";
+          }
+        }, 900);
+      } catch (err) {
+        loading.style.display = "none";
+        status.textContent = "Hash check failed";
+      }
+    }
 
-setTimeout(()=>{
+    const c = document.getElementById("matrix");
+    const ctx = c.getContext("2d");
 
-document.getElementById("loading").style.display="none";
+    function resizeCanvas() {
+      c.width = window.innerWidth;
+      c.height = window.innerHeight;
+      resetDrops();
+    }
 
-if(input===atob(encoded)){
-document.getElementById("status").innerText="Successful login";
-}else{
-document.getElementById("status").innerText="Access denied";
-}
+    const letters = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    const fontSize = 16;
+    let columns = 0;
+    let drops = [];
 
-},1200);
+    function resetDrops() {
+      columns = Math.floor(c.width / fontSize);
+      drops = Array(columns).fill(1);
+    }
 
-}
+    function drawMatrix() {
+      ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
+      ctx.fillRect(0, 0, c.width, c.height);
 
-const c=document.getElementById("matrix");
-const ctx=c.getContext("2d");
+      ctx.fillStyle = "#39ff14";
+      ctx.font = fontSize + "px monospace";
 
-c.height=window.innerHeight;
-c.width=window.innerWidth;
+      for (let i = 0; i < drops.length; i++) {
+        const text = letters[Math.floor(Math.random() * letters.length)];
+        ctx.fillText(text, i * fontSize, drops[i] * fontSize);
 
-const letters="0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-const font=16;
-const cols=c.width/font;
-const drops=[];
+        if (drops[i] * fontSize > c.height && Math.random() > 0.975) {
+          drops[i] = 0;
+        }
 
-for(let i=0;i<cols;i++){
-drops[i]=1;
-}
+        drops[i]++;
+      }
+    }
 
-function draw(){
-
-ctx.fillStyle="rgba(0,0,0,0.05)";
-ctx.fillRect(0,0,c.width,c.height);
-
-ctx.fillStyle="#39ff14";
-ctx.font=font+"px monospace";
-
-for(let i=0;i<drops.length;i++){
-
-const text=letters[Math.floor(Math.random()*letters.length)];
-ctx.fillText(text,i*font,drops[i]*font);
-
-if(drops[i]*font>c.height && Math.random()>0.975){
-drops[i]=0;
-}
-
-drops[i]++;
-
-}
-
-}
-
-setInterval(draw,35);
-
-</script>
-
+    resizeCanvas();
+    window.addEventListener("resize", resizeCanvas);
+    setInterval(drawMatrix, 35);
+  </script>
 </body>
 </html>
