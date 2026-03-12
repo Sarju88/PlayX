@@ -1,1 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PlayX Game Dashboard</title>
 
+  <script>
+    const BASE_PATH = "/PlayX/";
+    if (sessionStorage.getItem("playx_auth") !== "true") {
+      window.location.replace(BASE_PATH + "?password=iwantgames");
+    }
+  </script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: monospace;
+      background: #020402;
+      color: #39ff14;
+      overflow: hidden;
+    }
+
+    canvas {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+    }
+
+    .brand-corner {
+      position: fixed;
+      top: 18px;
+      left: 20px;
+      z-index: 3;
+      color: #39ff14;
+      font-size: 20px;
+      font-weight: bold;
+      letter-spacing: 0.5px;
+      text-shadow: 0 0 10px rgba(57, 255, 20, 0.45);
+    }
+
+    .wrap {
+      position: relative;
+      z-index: 1;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 90px 24px 24px;
+    }
+
+    .panel {
+      width: min(100%, 900px);
+      background: rgba(10, 18, 10, 0.95);
+      border: 1px solid #39ff14;
+      box-shadow: 0 0 25px rgba(57, 255, 20, 0.35);
+      padding: 32px;
+    }
+
+    h1 {
+      margin: 0 0 10px 0;
+      font-size: 34px;
+      text-shadow: 0 0 10px rgba(57, 255, 20, 0.45);
+    }
+
+    .sub {
+      color: #9dff8b;
+      margin-bottom: 24px;
+    }
+
+    .terminal-box {
+      background: #000;
+      border: 1px solid #39ff14;
+      padding: 16px;
+      color: #baffad;
+      min-height: 120px;
+      margin-bottom: 24px;
+      white-space: pre-wrap;
+      line-height: 1.6;
+    }
+
+    .buttons {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 24px;
+    }
+
+    .nav-btn {
+      padding: 14px 20px;
+      background: #39ff14;
+      border: none;
+      color: #000;
+      font-family: monospace;
+      font-weight: bold;
+      font-size: 15px;
+      cursor: pointer;
+      min-width: 150px;
+    }
+
+    .nav-btn:hover {
+      filter: brightness(1.05);
+    }
+
+    .content {
+      background: #000;
+      border: 1px solid #39ff14;
+      padding: 20px;
+      min-height: 180px;
+    }
+
+    .content h2 {
+      margin-top: 0;
+      font-size: 24px;
+    }
+
+    .content p,
+    .content li {
+      color: #baffad;
+      line-height: 1.6;
+    }
+
+    ul {
+      padding-left: 22px;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="matrix"></canvas>
+
+  <div class="brand-corner">PlayX Gaming Hub</div>
+
+  <div class="wrap">
+    <div class="panel">
+      <h1>Game Dashboard</h1>
+      <div class="sub">Game node active // Select a module</div>
+
+      <div class="terminal-box" id="terminalBox"></div>
+
+      <div class="buttons">
+        <button class="nav-btn" onclick="showMyGames()">My Games</button>
+        <button class="nav-btn" onclick="window.location.href='/PlayX/edulearn.html'">Edulearn</button>
+      </div>
+
+      <div class="content" id="content"></div>
+    </div>
+  </div>
+
+  <script>
+    const terminalLines = [
+      "[ OK ] Session verified",
+      "[ OK ] Loading PlayX modules",
+      "[ OK ] Opening game dashboard",
+      "[ OK ] Ready"
+    ];
+
+    function typeTerminalLines(lines, index = 0) {
+      const box = document.getElementById("terminalBox");
+      if (index < lines.length) {
+        box.textContent += lines[index] + "\n";
+        setTimeout(() => typeTerminalLines(lines, index + 1), 320);
+      }
+    }
+
+    function showMyGames() {
+      document.getElementById("content").innerHTML = `
+        <h2>My Games</h2>
+        <p>This section is coming later.</p>
+        <ul>
+          <li>Game library support will be added here</li>
+          <li>Favorites and recent games can go here</li>
+          <li>Custom PlayX game modules can be linked here</li>
+        </ul>
+      `;
+    }
+
+    typeTerminalLines(terminalLines);
+    showMyGames();
+
+    const c = document.getElementById("matrix");
+    const ctx = c.getContext("2d");
+    const letters = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    const fontSize = 16;
+    let drops = [];
+
+    function resizeCanvas() {
+      c.width = window.innerWidth;
+      c.height = window.innerHeight;
+      const columns = Math.floor(c.width / fontSize);
+      drops = Array(columns).fill(1);
+    }
+
+    function drawMatrix() {
+      ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
+      ctx.fillRect(0, 0, c.width, c.height);
+
+      ctx.fillStyle = "#39ff14";
+      ctx.font = fontSize + "px monospace";
+
+      for (let i = 0; i < drops.length; i++) {
+        const text = letters[Math.floor(Math.random() * letters.length)];
+        ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+
+        if (drops[i] * fontSize > c.height && Math.random() > 0.975) {
+          drops[i] = 0;
+        }
+
+        drops[i]++;
+      }
+    }
+
+    resizeCanvas();
+    window.addEventListener("resize", resizeCanvas);
+    setInterval(drawMatrix, 35);
+  </script>
+</body>
+</html>
