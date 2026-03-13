@@ -1,1 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PlayX Edulearn Games</title>
 
+  <script>
+    const BASE_PATH = "/PlayX/";
+    if (sessionStorage.getItem("playx_auth") !== "true") {
+      window.location.replace(BASE_PATH + "?password=iwantgames");
+    }
+  </script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: monospace;
+      background: #020402;
+      color: #39ff14;
+      overflow: hidden;
+    }
+
+    canvas {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+    }
+
+    .brand-corner {
+      position: fixed;
+      top: 18px;
+      left: 20px;
+      z-index: 3;
+      color: #39ff14;
+      font-size: 20px;
+      font-weight: bold;
+      letter-spacing: 0.5px;
+      text-shadow: 0 0 10px rgba(57, 255, 20, 0.45);
+    }
+
+    .wrap {
+      position: relative;
+      z-index: 1;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding: 80px 20px 20px;
+      gap: 16px;
+    }
+
+    .topbar {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .nav-btn {
+      padding: 12px 18px;
+      background: #39ff14;
+      border: none;
+      color: #000;
+      font-family: monospace;
+      font-weight: bold;
+      font-size: 15px;
+      cursor: pointer;
+    }
+
+    .nav-btn:hover {
+      filter: brightness(1.05);
+    }
+
+    .panel {
+      background: rgba(10, 18, 10, 0.95);
+      border: 1px solid #39ff14;
+      box-shadow: 0 0 25px rgba(57, 255, 20, 0.35);
+      padding: 14px;
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .title {
+      font-size: 26px;
+      text-shadow: 0 0 10px rgba(57, 255, 20, 0.45);
+    }
+
+    .sub {
+      color: #9dff8b;
+    }
+
+    .iframe-wrap {
+      flex: 1;
+      min-height: 0;
+      border: 1px solid #39ff14;
+      background: #000;
+      overflow: hidden;
+    }
+
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      background: #fff;
+    }
+
+    .status {
+      color: #9dff8b;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="matrix"></canvas>
+
+  <div class="brand-corner">PlayX Gaming Hub</div>
+
+  <div class="wrap">
+    <div class="topbar">
+      <button class="nav-btn" onclick="window.location.href='/PlayX/edulearn.html'">Back</button>
+      <button class="nav-btn" onclick="openFullscreen()">Fullscreen</button>
+    </div>
+
+    <div class="panel" id="panel">
+      <div class="title">Edulearn Games</div>
+      <div class="sub">Math module active</div>
+
+      <div class="iframe-wrap" id="iframeWrap">
+        <iframe
+          id="gameFrame"
+          src="https://edulearnschool.vercel.app/math/gn-math.html"
+          allowfullscreen
+          referrerpolicy="no-referrer"
+        ></iframe>
+      </div>
+
+      <div class="status" id="status">
+        If fullscreen does not open inside the iframe content, use the page fullscreen button above.
+      </div>
+    </div>
+  </div>
+
+  <script>
+    async function openFullscreen() {
+      const elem = document.getElementById("iframeWrap");
+
+      try {
+        if (elem.requestFullscreen) {
+          await elem.requestFullscreen();
+        } else if (elem.webkitRequestFullscreen) {
+          elem.webkitRequestFullscreen();
+        } else if (elem.msRequestFullscreen) {
+          elem.msRequestFullscreen();
+        }
+      } catch (e) {
+        document.getElementById("status").textContent = "Fullscreen was blocked or not supported in this browser.";
+      }
+    }
+
+    const c = document.getElementById("matrix");
+    const ctx = c.getContext("2d");
+    const letters = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    const fontSize = 16;
+    let drops = [];
+
+    function resizeCanvas() {
+      c.width = window.innerWidth;
+      c.height = window.innerHeight;
+      const columns = Math.floor(c.width / fontSize);
+      drops = Array(columns).fill(1);
+    }
+
+    function drawMatrix() {
+      ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
+      ctx.fillRect(0, 0, c.width, c.height);
+
+      ctx.fillStyle = "#39ff14";
+      ctx.font = fontSize + "px monospace";
+
+      for (let i = 0; i < drops.length; i++) {
+        const text = letters[Math.floor(Math.random() * letters.length)];
+        ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+
+        if (drops[i] * fontSize > c.height && Math.random() > 0.975) {
+          drops[i] = 0;
+        }
+
+        drops[i]++;
+      }
+    }
+
+    resizeCanvas();
+    window.addEventListener("resize", resizeCanvas);
+    setInterval(drawMatrix, 35);
+  </script>
+</body>
+</html>
