@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Home - Classroom</title>
-  <link rel="icon" href="/favicon.png" type="image/png">
+  <title>PlayX Game Dashboard</title>
+
   <script>
     const BASE_PATH = "/PlayX/";
     if (sessionStorage.getItem("playx_auth") !== "true") {
@@ -137,17 +137,24 @@
 
   <div class="wrap">
     <div class="panel">
-      <h1>Math Game Dashboard</h1>
+      <h1>Game Dashboard</h1>
       <div class="sub">Game node active // Select a module</div>
 
       <div class="terminal-box" id="terminalBox"></div>
 
       <div class="buttons">
-        <button class="nav-btn" onclick="showMyGames()">My Games</button>
+        <button class="nav-btn" onclick="window.location.href='/PlayX/mygames.html'">My Games</button>
         <button class="nav-btn" onclick="window.location.href='/PlayX/edulearn.html'">Edulearn</button>
       </div>
 
-      <div class="content" id="content"></div>
+      <div class="content" id="content">
+        <h2>Game Hub</h2>
+        <p>Select one of the modules above.</p>
+        <ul>
+          <li><strong>My Games</strong> opens <code>mygames.html</code></li>
+          <li><strong>Edulearn</strong> opens <code>edulearn.html</code></li>
+        </ul>
+      </div>
     </div>
   </div>
 
@@ -167,20 +174,7 @@
       }
     }
 
-    function showMyGames() {
-      document.getElementById("content").innerHTML = `
-        <h2>My Games</h2>
-        <p>This section is coming later.</p>
-        <ul>
-          <li>Game library support will be added here</li>
-          <li>Favorites and recent games can go here</li>
-          <li>Custom PlayX game modules can be linked here</li>
-        </ul>
-      `;
-    }
-
     typeTerminalLines(terminalLines);
-    showMyGames();
 
     const c = document.getElementById("matrix");
     const ctx = c.getContext("2d");
